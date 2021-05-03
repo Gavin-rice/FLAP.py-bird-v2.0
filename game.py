@@ -1,33 +1,60 @@
 import pygame, sys, random
+from menu import Main_menu 
 
 class Game():
 
 
     def __init__(self):
+
+        #initialization
         pygame.init()
         pygame.mixer.pre_init(frequency = 44100,size = 16, channels = 1, buffer = 512) #pre-intitalize the mixer so othat there wont be any audio lag
+        
+        #game states
         self.is_running = True
         self.is_playing = True
+        self.game_active = True
+        #menu variables
+        self.running = True
+        self.BLACK, self.WHITE = (0, 0, 0), (255, 255, 255)
+
+        #menu inputs
+        self.UP_KEY, self.DOWN_KEY, self.START_KEY, self.BACK_KEY = False, False, False, False
+
+        #menu state
+        self.menu_state = 'Start'
+
+        self.is_start,self.is_other,self.is_options,self.is_credits = self.BLACK,self.WHITE,self.WHITE,self.WHITE
+        #screen setup
         self.width = 576
         self.height = 1024
         self.screen = pygame.display.set_mode((self.width,self.height))
         self.clock = pygame.time.Clock()
         #game settings
-        
+        self.display = pygame.Surface((self.width,self.height)) #defines a surface of the same size as the screen
 
         #score variables
         self.score = 0
         self.high_score = 0
 
-        #font settings
-        self.game_font = pygame.font.Font('04B_19__.ttf',40)
+        #menu setup
+        self.title_surface = pygame.image.load('assets\logo.png').convert_alpha()
+        self.title_surface = pygame.transform.scale(self.title_surface,(400,90))
+        self.title_rect = self.title_surface.get_rect(center = (288,120))
+
+        self.menu_index = 0
+   
+        self.main_menu = Main_menu(self)
+        self.curr_menu = self.main_menu
 
         #menu controls
         self.BACK_KEY = False #if BACK_KEY is pressed we want to 'pause' the game
 
-        self.game_active = True
-        print('Yoooooo')
-        self.game_font = pygame.font.Font('04B_19__.ttf',40)
+        
+        #font stuff
+        self.font_name = '04B_19__.ttf'
+
+        self.game_font = pygame.font.Font(self.font_name,40)
 
         #BG image
         self.bg_surface = pygame.image.load('assets/background-day.png').convert() #intial temp background, convert makes it easier for pygame to run
@@ -81,7 +108,67 @@ class Game():
             bg_surface = pygame.image.load('assets/background-day.png').convert() #intial temp background, convert makes it easier for pygame to run
             bg_surface = pygame.transform.scale2x(bg_surface) #doubles the size of the asset
         return bg_surface
+    
+
+    def draw_text(self,text, size, x, y):
+        fo
     '''
+    #menu methods
+    
+    def menu_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running, self.playing = False, False
+                pygame.quit()
+                sys.exit()
+                #self.curr_menu.run_display = False
+            if event.type == self.BIRDFLAP:
+                if self.menu_index < 5:
+                    self.menu_index += 1
+                else:
+                    self.menu_index = 0
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    self.START_KEY = True
+                    return True
+                if event.key == pygame.K_BACKSPACE:
+                    self.BACK_KEY = True
+                    return True
+                if event.key == pygame.K_DOWN:
+                    self.DOWN_KEY = True
+                    return True
+                if event.key == pygame.K_UP:
+                    self.UP_KEY = True
+                    return True
+        return False
+                
+
+    #self.is_(the option)
+    def draw_text(self,text,x,y,color):
+        text_surface = self.game_font.render(text,True,color)
+        text_rect = text_surface.get_rect(center = (x,y))
+
+        self.screen.blit(text_surface,text_rect)
+        
+
+    #potentially add the 
+    def reset_keys(self):
+        self.UP_KEY,self.DOWN_KEY,self.START_KEY,self.BACK_KEY = False, False, False, False
+
+
+    '''
+    def main_menu_render(self):
+        while True:
+            self.screen.blit(self.bg_surface,(0,0))
+            self.floor_x_pos -= 1
+            self.draw_floor()
+            if self.floor_x_pos <= -576:
+                self.floor_x_pos = 0
+            if self.menu_events():
+                break
+    '''
+
 
     def score_display(self,game_state):
         if game_state == 'main_game':
@@ -94,14 +181,64 @@ class Game():
             self.screen.blit(score_surface,score_rect)
 
             high_score_surface = self.game_font.render(f'High score: {int(self.high_score)}',True,(255,255,255))
-            high_score_rect = score_surface.get_rect(center = (288,850))
+            high_score_rect = score_surface.get_rect(center = (240,850))
             self.screen.blit(high_score_surface,high_score_rect)
 
     def update_score(self):
         self.high_score = max(self.score,self.high_score)
 
-    def game_loop(self):
+    
+    #draws each option in the main menu
+    def draw_buttons(self):
+        self.draw_text("Start Game",288,350,self.is_start)
+        self.draw_text("Other game modes", 288, 400, self.is_other)
+        self.draw_text("Options", 288, 450, self.is_options)
+        self.draw_text("Credits", 288, 500, self.is_credits)
+
+        '''
+        start_surface = self.game_font.render("Start Game",True,self.is_start)
+        start_rect = start_surface.get_rect(center = (288,300))
         
+        other_surface = self.game_font.render("Other game modes",True,self.is_other)
+        other_rect = other_surface.get_rect(center = (288,350))
+
+        #put on the screen
+        self.screen.blit(start_surface,start_rect)
+        self.screen.blit(other_surface,other_rect)
+        '''
+
+
+    def show_menu(self):
+        while True:
+            self.screen.blit(self.bg_surface,(0,0))
+            
+            menu_surface = self.game_font.render("Main Menu",True,self.WHITE)
+            main_menu_rect = menu_surface.get_rect(center = (288,150))
+            self.screen.blit(menu_surface,main_menu_rect)
+            self.draw_buttons()
+            self.draw_floor()
+            self.floor_x_pos -= 1
+            if self.floor_x_pos <= -576:
+                self.floor_x_pos = 0
+                #print('debug')
+                
+                #update game
+            pygame.display.update()
+            self.clock.tick(120)
+            closer = self.menu_events()
+            if closer:
+                print('debug')
+                self.reset_keys()
+                break
+
+        
+
+    def game_loop(self):
+
+        '''
+        while self.running:
+            self.show_menu()
+        '''
         while self.is_playing:
             self.check_events()
 
@@ -131,11 +268,12 @@ class Game():
             
             #floor movement
 
-            self.floor_x_pos -= 1
+            
             self.draw_floor()
+            self.floor_x_pos -= 1
             if self.floor_x_pos <= -576:
                 self.floor_x_pos = 0
-            print('debug')
+            #print('debug')
             
             #update game
             pygame.display.update()
@@ -154,12 +292,24 @@ class Game():
                 self.is_running, self.is_playing = False, False
                 pygame.quit()
                 sys.exit()
+            #for menu movement
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    self.START_KEY = True
+                if event.key == pygame.K_BACKSPACE:
+                    self.BACK_KEY = True
+                if event.key == pygame.K_DOWN:
+                    self.DOWN_KEY = True
+                if event.key == pygame.K_UP:
+                    self.UP_KEY = True    
+            #when you are in the game loop
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and self.game_active:
                     self.bird_movement = 0
                     self.bird_movement -= 8 #bird goes up
                     self.flap_sound.play()
             
+            #when you are dead and are trying to restart the game
             if event.type == pygame.KEYDOWN and self.game_active == False:
                 self.game_active = True
                 self.pipe_list.clear()
@@ -177,7 +327,7 @@ class Game():
                     self.bird_index = 0 #sdasd
                 self.bird_surface, self.bird_rect = self.bird_animation()
                     
-            if event.type == pygame.K_BACKSPACE:
+            if event.type == pygame.K_BACKSPACE: #when we want to exit to the main menu/pause
                 self.BACK_KEY = True
 
     def create_pipe(self):
@@ -191,6 +341,7 @@ class Game():
             pipe.centerx -= 5
         return pipes
 
+    #flying animation (vertical)
     def bird_animation(self):
         new_bird = self.bird_frames[self.bird_index]
         new_bird_rect = new_bird.get_rect(center = (100,self.bird_rect.centery))
@@ -223,7 +374,7 @@ class Game():
         self.screen.blit(self.floor_surface,(self.floor_x_pos,900))
         self.screen.blit(self.floor_surface,(self.floor_x_pos + 576,900))
 
-
+#external functions
 def roto(bird,movement):
     new = pygame.transform.rotozoom(bird,-movement*3,1)
     return new
