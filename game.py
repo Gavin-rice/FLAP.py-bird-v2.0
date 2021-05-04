@@ -16,6 +16,7 @@ class Game():
         self.game_active = True
         #menu variables
         self.running = True
+        self.playing = False
         self.BLACK, self.WHITE = (0, 0, 0), (255, 255, 255)
 
         #menu inputs
@@ -239,7 +240,7 @@ class Game():
         while self.running:
             self.show_menu()
         '''
-        while self.is_playing:
+        while self.playing:
             self.check_events()
 
 
