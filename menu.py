@@ -15,7 +15,7 @@ class Menu():
         self.menu_game_state = "Start"
         self.run_display = True
     
-    #BLIT SCREEN method
+
     def update_menu(self):
         #self.game.screen.blit(self.game.display,(0,0))
         pygame.display.update()
@@ -30,17 +30,7 @@ class Main_menu(Menu):
 
 
 
-    def menu_input(self):
-        self.move_selector()
-        if self.game.START_KEY:
-            if self.state == "Start":
-                self.game.playing = True
-            elif self.state == "Other":
-                print("Other Game Modes")
-            elif self.state == "Options":
-                print("Options")
-            elif self.state == "Credits":
-                print("Credits")
+
 
     def move_selector(self):
         if self.game.DOWN_KEY:
@@ -77,12 +67,24 @@ class Main_menu(Menu):
                 self.game.is_credits = self.game.WHITE
                 self.game.is_options = self.game.BLACK
                 self.state = "Options"
-            
+                
+    def main_menu_inputs(self):
+        self.move_selector()
+        if self.game.START_KEY:
+            if self.state == "Start":
+                self.game.playing = True
+            elif self.state == "Other":
+                print("Other Game Modes")
+            elif self.state == "Options":
+                print("Options")
+            elif self.state == "Credits":
+                print("Credits")
 
     def animate_title(self):
         
         self.game.title_rect = self.game.title_surface.get_rect(center = (258,self.menu_heights[self.game.menu_index]))
         self.game.screen.blit(self.game.title_surface,self.game.title_rect)
+        self.game.screen.blit(self.game.menu_bird_surface,self.game.menu_bird_rect)
         
 
     def display_menu(self):
@@ -91,8 +93,8 @@ class Main_menu(Menu):
             self.game.screen.blit(self.game.bg_surface,(0,0))
             #self.game.screen.blit(self.game.title_surface,self.game.title_rect)
             #self.animate_menu()
-
             self.animate_title()
+            
             menu_surface = self.game.game_font.render('Main Menu',True,self.game.WHITE)
             main_menu_rect = menu_surface.get_rect(center = (288,230))
             self.game.screen.blit(menu_surface,main_menu_rect)
@@ -104,51 +106,17 @@ class Main_menu(Menu):
                 #print('debug')
                 
                 #update game
-            pygame.display.update()
+            #pygame.display.update()
             self.game.clock.tick(120)
             closer = self.game.menu_events()
-            self.menu_input()
-            #print('testing')
+            self.main_menu_inputs()
             self.update_menu()
+            #print('testing')
             if closer:
-                print('debug')
+                #print('debug')
                 #self.game.reset_keys()
                 break
 
-class Other_game_modes(Menu):
-    def __init__(self, game):
-        Menu.__init__(self, game)
-        self.state = "Night"
-
-    def display_menu(self):
-        pass
-    
-    def menu_input(self):
-        pass
-
-
-class Options_menu(Menu):
-    def __init__(self, game):
-        Menu.__init__(self, game)
-        self.state = "Volume"
-    
-    def display_menu(self):
-        pass
-
-    def menu_input(self):
-        pass
-
-class Credits(Menu):
-    def __init__(self, game):
-        Mene.__init__(self,game)
-
-    def display_menu(self):
-        pass    
-
-
-
-
- 
 '''
 class Menu():
 

@@ -44,7 +44,8 @@ class Game():
         self.title_rect = self.title_surface.get_rect(center = (288,120))
 
         self.menu_index = 0
-   
+        #bird animation set up
+
         self.main_menu = Main_menu(self)
         self.curr_menu = self.main_menu
 
@@ -100,6 +101,11 @@ class Game():
         self.death_sound = pygame.mixer.Sound('sounds\sound_sfx_hit.wav') #for pipe
         self.score_sound = pygame.mixer.Sound('sounds\sound_sfx_point.wav')
 
+        self.menu_bird_index = 0
+        self.menu_bird_surface = self.bird_frames[self.bird_index]
+        self.menu_bird_rect = self.menu_bird_surface.get_rect(center = (480,115))
+   
+
 
 
     '''
@@ -124,6 +130,12 @@ class Game():
                 sys.exit()
                 #self.curr_menu.run_display = False
             if event.type == self.BIRDFLAP:
+                '''
+                if self.menu_bird_index < 2:
+                    self.menu_bird_index += 1
+                if self.menu_bird_index <= 2:
+                    self.menu_bird_index = 0
+                '''
                 if self.menu_index < 5:
                     self.menu_index += 1
                 else:
