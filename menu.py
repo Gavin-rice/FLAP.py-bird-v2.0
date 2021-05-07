@@ -79,7 +79,10 @@ class Main_menu(Menu):
                 self.game.playing = True
             elif self.state == "Other":
                 print("Other Game Modes")
+                self.run_display = False
                 self.game.curr_menu = self.game.other
+                self.run_display = True
+                self.game.curr_menu.display_menu()
             elif self.state == "Options":
                 print("Options")
             elif self.state == "Credits":
@@ -110,6 +113,7 @@ class Main_menu(Menu):
     def display_menu(self):
         self.run_display = True
         while self.run_display:
+            self.update_menu()
             self.game.screen.blit(self.game.bg_surface,(0,0))
             #self.game.screen.blit(self.game.title_surface,self.game.title_rect)
             #self.animate_menu()
@@ -146,10 +150,11 @@ class Main_menu(Menu):
             self.game.clock.tick(120)
             closer = self.game.menu_events()
             self.main_menu_inputs()
-            self.update_menu()
+            
 
             if closer:
                 #print('debug')
+                self.run_display = False
                 #self.game.reset_keys()
                 break
 
@@ -167,6 +172,7 @@ class Other_games_menu(Menu):
     def display_menu(self):
         self.run_display = True
         while self.run_display:
+            self.update_menu()
             self.game.screen.blit(self.game.bg_surface,(0,0))
 
             self.animate_title()
@@ -182,13 +188,17 @@ class Other_games_menu(Menu):
 
             self.game.clock.tick(120)
             closer = self.game.menu_events()
+            self.menu_input()
+
             if closer:
+                
                 break
         pass
 
 
     def move_selector(self):
-        if self.DOWN_KEY:
+        if self.game.DOWN_KEY:
+            print('down')
             if self.state == 'Night':
                 self.is_night = self.game.WHITE
                 self.is_challenge = self.game.BLACK
@@ -197,7 +207,8 @@ class Other_games_menu(Menu):
                 self.is_challenge = self.game.WHITE
                 self.is_night = self.game.BLACK
                 self.state = 'Night'
-        if self.UP_KEY:
+        if self.game.UP_KEY:
+            print("up")
             if self.state == 'Night':
                 self.is_night = self.game.WHITE
                 self.is_challenge = self.game.BLACK
@@ -209,7 +220,7 @@ class Other_games_menu(Menu):
 
     def menu_input(self):
         self.move_selector()
-        if self.game.SPACE_KEY:
+        if self.game.START_KEY:
             if self.state == "Night":
                 self.game.bg_surface = self.game.bg_night_surface
                 self.game.playing = True
