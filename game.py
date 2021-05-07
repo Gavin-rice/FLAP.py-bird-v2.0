@@ -1,5 +1,5 @@
 import pygame, sys, random
-from menu import Main_menu 
+from menu import *
 
 class Game():
 
@@ -17,14 +17,17 @@ class Game():
         #menu variables
         self.running = True
         self.playing = False
-        self.BLACK, self.WHITE = (0, 0, 0), (255, 255, 255)
+        self.BLACK, self.WHITE, self.RED = (0, 0, 0), (255, 255, 255), (255,0,0)
 
         #menu inputs
-        self.UP_KEY, self.DOWN_KEY, self.START_KEY, self.BACK_KEY = False, False, False, False
-
+        self.UP_KEY, self.DOWN_KEY, self.START_KEY, self.BACK_KEY, self.SPACE_KEY = False, False, False, False, False
+        
         #menu state
         self.menu_state = 'Start'
 
+
+
+        self.is_high_score = self.WHITE
         self.is_start,self.is_other,self.is_options,self.is_credits = self.BLACK,self.WHITE,self.WHITE,self.WHITE
         #screen setup
         self.width = 576
@@ -47,21 +50,27 @@ class Game():
         #bird animation set up
 
         self.main_menu = Main_menu(self)
-        self.curr_menu = self.main_menu
+        
 
         #menu controls
         self.BACK_KEY = False #if BACK_KEY is pressed we want to 'pause' the game
 
-        
+        #Other menus
+        self.other = Other_games_menu(self)
+        self.options = Options_menu(self)
+        self.credits = Credits(self)
+        self.curr_menu = self.main_menu
         #font stuff
         self.font_name = '04B_19__.ttf'
 
         self.game_font = pygame.font.Font(self.font_name,40)
+        self.Menu_font = pygame.font.Font(self.font_name,76)
 
         #BG image
         self.bg_surface = pygame.image.load('assets/background-day.png').convert() #intial temp background, convert makes it easier for pygame to run
         self.bg_surface = pygame.transform.scale2x(self.bg_surface) #doubles the size of the asset
-
+        self.bg_night_surface = pygame.image.load('assets/background-night.png')
+        self.bg_night_surface = pygame.transform.scale2x(self.bg_night_surface)
         #floor
         self.floor_surface = pygame.image.load('assets/base.png').convert()
         self.floor_surface = pygame.transform.scale2x(self.floor_surface)
@@ -95,14 +104,14 @@ class Game():
         self.bird_movement = 0
         #game over
         self.game_over_surface = pygame.transform.scale2x(pygame.image.load('assets\message.png').convert_alpha())
-        self.game_over_rect = self.game_over_surface.get_rect(center = (288,512))
+        self.game_over_rect = self.game_over_surface.get_rect(center = (288,474))
         #sond fx
         self.flap_sound = pygame.mixer.Sound('sounds\sound_sfx_wing.wav')
         self.death_sound = pygame.mixer.Sound('sounds\sound_sfx_hit.wav') #for pipe
         self.score_sound = pygame.mixer.Sound('sounds\sound_sfx_point.wav')
 
         self.menu_bird_index = 0
-        self.menu_bird_surface = self.bird_frames[self.bird_index]
+        self.menu_bird_surface = self.bird_frames[self.menu_bird_index]
         self.menu_bird_rect = self.menu_bird_surface.get_rect(center = (480,115))
    
 
@@ -130,30 +139,35 @@ class Game():
                 sys.exit()
                 #self.curr_menu.run_display = False
             if event.type == self.BIRDFLAP:
-                '''
+                
                 if self.menu_bird_index < 2:
                     self.menu_bird_index += 1
-                if self.menu_bird_index <= 2:
+                if self.menu_bird_index >= 2:
                     self.menu_bird_index = 0
-                '''
+                
                 if self.menu_index < 5:
                     self.menu_index += 1
                 else:
                     self.menu_index = 0
 
             if event.type == pygame.KEYDOWN:
+                if event.type == pygame.K_SPACE:
+                    self.SPACE_KEY = True
+                    return True
                 if event.key == pygame.K_RETURN:
                     self.START_KEY = True
-                    return True
+                    #return True
                 if event.key == pygame.K_BACKSPACE:
                     self.BACK_KEY = True
-                    return True
+                    #return True
                 if event.key == pygame.K_DOWN:
                     self.DOWN_KEY = True
-                    return True
+                    #return True
                 if event.key == pygame.K_UP:
                     self.UP_KEY = True
-                    return True
+                    #return True
+                return True
+                
         return False
                 
 
@@ -167,7 +181,7 @@ class Game():
 
     #potentially add the 
     def reset_keys(self):
-        self.UP_KEY,self.DOWN_KEY,self.START_KEY,self.BACK_KEY = False, False, False, False
+        self.UP_KEY,self.DOWN_KEY,self.START_KEY,self.BACK_KEY,self.SPACE_KEY = False, False, False, False, False
 
 
     '''
@@ -192,33 +206,25 @@ class Game():
             score_surface = self.game_font.render(f'Score: {int(self.score)}',True,(255,255,255))
             score_rect = score_surface.get_rect(center = (288,100))
             self.screen.blit(score_surface,score_rect)
-
-            high_score_surface = self.game_font.render(f'High score: {int(self.high_score)}',True,(255,255,255))
-            high_score_rect = score_surface.get_rect(center = (240,850))
-            self.screen.blit(high_score_surface,high_score_rect)
+            self.draw_text("Space bar to restart",288,780,self.WHITE)
+            
+            if self.score == self.high_score:
+                high_score_surface = self.game_font.render(f'New High score!: {int(self.high_score)}',True,self.is_high_score)
+                high_score_rect = score_surface.get_rect(center = (220,880))
+                self.screen.blit(high_score_surface,high_score_rect)                
+            else:
+                high_score_surface = self.game_font.render(f'High score: {int(self.high_score)}',True,self.is_high_score)
+                high_score_rect = score_surface.get_rect(center = (240,880))
+                self.screen.blit(high_score_surface,high_score_rect)
 
     def update_score(self):
         self.high_score = max(self.score,self.high_score)
+        if self.high_score == self.score:
+            self.is_high_score = self.RED
 
     
     #draws each option in the main menu
-    def draw_buttons(self):
-        self.draw_text("Start Game",288,350,self.is_start)
-        self.draw_text("Other game modes", 288, 400, self.is_other)
-        self.draw_text("Options", 288, 450, self.is_options)
-        self.draw_text("Credits", 288, 500, self.is_credits)
 
-        '''
-        start_surface = self.game_font.render("Start Game",True,self.is_start)
-        start_rect = start_surface.get_rect(center = (288,300))
-        
-        other_surface = self.game_font.render("Other game modes",True,self.is_other)
-        other_rect = other_surface.get_rect(center = (288,350))
-
-        #put on the screen
-        self.screen.blit(start_surface,start_rect)
-        self.screen.blit(other_surface,other_rect)
-        '''
 
 
     def show_menu(self):
@@ -281,7 +287,7 @@ class Game():
             
             #floor movement
 
-            
+            self.is_high_score = self.WHITE
             self.draw_floor()
             self.floor_x_pos -= 1
             if self.floor_x_pos <= -576:
@@ -314,21 +320,25 @@ class Game():
                 if event.key == pygame.K_DOWN:
                     self.DOWN_KEY = True
                 if event.key == pygame.K_UP:
-                    self.UP_KEY = True    
+                    self.UP_KEY = True  
+                if event.key == pygame.K_SPACE:
+                    self.SPACE_KEY = True  
             #when you are in the game loop
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and self.game_active:
                     self.bird_movement = 0
                     self.bird_movement -= 8 #bird goes up
                     self.flap_sound.play()
+                    self.SPACE_KEY = True
             
             #when you are dead and are trying to restart the game
             if event.type == pygame.KEYDOWN and self.game_active == False:
-                self.game_active = True
-                self.pipe_list.clear()
-                self.bird_rect.center = (100,512)
-                self.bird_movement = 0
-                self.score = 0
+                if event.key == pygame.K_SPACE:
+                    self.game_active = True
+                    self.pipe_list.clear()
+                    self.bird_rect.center = (100,512)
+                    self.bird_movement = 0
+                    self.score = 0
                 
             if event.type == self.SPAWNPIPE:
                 self.pipe_list.extend(self.create_pipe())
