@@ -1,4 +1,4 @@
-import pygame
+import pygame, sys
 
 '''from game import Game'''
 
@@ -34,8 +34,8 @@ class Main_menu(Menu):
 
     def move_selector(self):
         if self.game.DOWN_KEY:
-            if self.state == "Credits":
-                self.game.is_credits = self.game.WHITE
+            if self.state == "Quit":
+                self.game.is_quit = self.game.WHITE
                 self.game.is_start = self.game.BLACK
                 self.state = "Start"
                 #
@@ -52,12 +52,16 @@ class Main_menu(Menu):
                 self.game.is_options = self.game.WHITE
                 self.game.is_credits = self.game.BLACK
                 self.state = "Credits"
+            elif self.state == "Credits":
+                self.game.is_credits = self.game.WHITE
+                self.game.is_quit = self.game.BLACK
+                self.state = "Quit"
             
         if self.game.UP_KEY:
             if self.state == "Start":
                 self.game.is_start = self.game.WHITE
-                self.game.is_credits = self.game.BLACK
-                self.state = "Credits"
+                self.game.is_quit = self.game.BLACK
+                self.state = "Quit"
             elif self.state == "Other":
                 self.game.is_other = self.game.WHITE
                 self.game.is_start = self.game.BLACK
@@ -70,6 +74,10 @@ class Main_menu(Menu):
                 self.game.is_credits = self.game.WHITE
                 self.game.is_options = self.game.BLACK
                 self.state = "Options"
+            elif self.state == "Quit":
+                self.game.is_quit = self.game.WHITE
+                self.game.is_credits = self.game.BLACK
+                self.state = "Credits"
                 
     def main_menu_inputs(self):
         self.move_selector()
@@ -85,8 +93,17 @@ class Main_menu(Menu):
                 self.game.curr_menu.display_menu()
             elif self.state == "Options":
                 print("Options")
+                self.run_display = False
+                self.game.curr_menu = self.game.options
+                self.run_display = True
+                self.game.curr_menu.display_menu()
             elif self.state == "Credits":
                 print("Credits")
+            elif self.state == "Quit":
+                self.game.running, self.game.playing = False, False
+                pygame.quit()
+                sys.exit()
+
             #self.run_display = False
 
 
@@ -97,6 +114,8 @@ class Main_menu(Menu):
         self.game.draw_text("Other game modes", 288, 400, self.game.is_other)
         self.game.draw_text("Options", 288, 450, self.game.is_options)
         self.game.draw_text("Credits", 288, 500, self.game.is_credits)
+        
+        self.game.draw_text("Quit Game",288,600,self.game.is_quit)
 
         '''
         start_surface = self.game_font.render("Start Game",True,self.is_start)
@@ -164,13 +183,17 @@ class Other_games_menu(Menu):
         self.state = "Night"
         self.is_night = self.game.BLACK
         self.is_challenge = self.game.WHITE
+        self.is_return = self.game.WHITE
 
     def draw_buttons(self):
         self.game.draw_text("Night Mode",288,350,self.is_night)
         self.game.draw_text("Challenge Mode",288,400,self.is_challenge)
 
+        self.game.draw_text("Main menu",288,500,self.is_return)
+
     def display_menu(self):
         self.run_display = True
+        self.game.menu_state = "Other"
         while self.run_display:
             self.update_menu()
             self.game.screen.blit(self.game.bg_surface,(0,0))
@@ -193,30 +216,40 @@ class Other_games_menu(Menu):
             if closer:
                 
                 break
-        pass
 
 
     def move_selector(self):
         if self.game.DOWN_KEY:
-            print('down')
+            #print('down')
             if self.state == 'Night':
                 self.is_night = self.game.WHITE
                 self.is_challenge = self.game.BLACK
                 self.state = 'Challenge'
             elif self.state == 'Challenge':
                 self.is_challenge = self.game.WHITE
+                self.is_return = self.game.BLACK
+                self.state = 'Return'
+            elif self.state == 'Return':
+                self.is_return = self.game.WHITE
                 self.is_night = self.game.BLACK
                 self.state = 'Night'
         if self.game.UP_KEY:
-            print("up")
+            #print("up")
             if self.state == 'Night':
                 self.is_night = self.game.WHITE
-                self.is_challenge = self.game.BLACK
-                self.state = 'Challenge'
+                self.is_return = self.game.BLACK
+                self.state = 'Return'
             elif self.state == 'Challenge':
                 self.is_challenge = self.game.WHITE
                 self.is_night = self.game.BLACK
                 self.state = 'Night'
+            elif self.state == 'Return':
+                self.is_return = self.game.WHITE
+                self.is_challenge = self.game.BLACK
+                self.state = 'Challenge'
+
+
+
 
     def menu_input(self):
         self.move_selector()
@@ -226,17 +259,65 @@ class Other_games_menu(Menu):
                 self.game.playing = True
             elif self.state == "Challenge":
                 print("Challenge Mode")
-        
+            elif self.state == "Return":
+                self.run_display = False
+                self.game.curr_menu = self.game.main_menu
+                self.run_display = True
+                self.game.curr_menu.display_menu()
 
 class Options_menu(Menu):
     def __init__(self,game):
         Menu.__init__(self,game)
         self.state = "Volume"
+        self.names = ["Volume","Colour","Test","Test1"]
+        self.descripts = ["Volume controls", "Change bird color", "Test text", "Test text 1"]
+        self.name_colours = [self.game.BLACK,self.game.WHITE,self.game.WHITE,self.game.WHITE]
+        self.menu_index = 0
+        
+
+    def draw_buttons(self):
+        self.game.draw_text(self.descripts[0],288,350,self.name_colours[0])
+        self.game.draw_text(self.descripts[1],288,400,self.name_colours[1])
+        self.game.draw_text(self.descripts[2],288,450,self.name_colours[2])
+        self.game.draw_text(self.descripts[3],288,500,self.name_colours[3])
+
 
     def display_menu(self):
+
+        self.game.menu_state = "Options"
+        self.run_display = True
+        
+        while self.run_display:
+            self.update_menu()
+            self.game.screen.blit(self.game.bg_surface,(0,0))
+
+            self.animate_title()
+            
+            menu_surface = self.game.game_font.render('Options Menu',True,self.game.WHITE)
+            main_menu_rect = menu_surface.get_rect(center = (288,230))
+            self.game.screen.blit(menu_surface,main_menu_rect)
+            self.draw_buttons()
+            self.game.draw_floor()
+            self.game.floor_x_pos -= 1
+            if self.game.floor_x_pos <= -576:
+                self.game.floor_x_pos = 0
+
+            self.game.clock.tick(120)
+            closer = self.game.menu_events()
+            self.menu_input()
+
+            if closer:
+                
+                break
+        pass
+
+    def move_selector(self):
         pass
 
     def menu_input(self):
+        self.move_selector()
+        if game.START_KEY:
+            pass
         pass
 
 class Credits(Menu):

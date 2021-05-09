@@ -27,7 +27,8 @@ class Game():
 
 
 
-        self.is_high_score = self.WHITE
+        self.is_high_score, self.is_quit = self.WHITE,self.WHITE
+
         self.is_start,self.is_other,self.is_options,self.is_credits = self.BLACK,self.WHITE,self.WHITE,self.WHITE
         #screen setup
         self.width = 576
@@ -47,7 +48,7 @@ class Game():
         self.title_rect = self.title_surface.get_rect(center = (288,120))
 
         self.menu_index = 0
-        #bird animation set up
+        #Main menu start point
 
         self.main_menu = Main_menu(self)
         
@@ -77,6 +78,8 @@ class Game():
         self.floor_x_pos = 0
 
         #bird
+        self.bird_colour = 'BLUE'
+
         self.bird_downflap = pygame.transform.scale2x(pygame.image.load('assets/bluebird-downflap.png').convert_alpha())
         self.bird_midflap = pygame.transform.scale2x(pygame.image.load('assets/bluebird-midflap.png').convert_alpha())
         self.bird_upflap = pygame.transform.scale2x(pygame.image.load('assets/bluebird-upflap.png').convert_alpha())
@@ -333,6 +336,13 @@ class Game():
             
             #when you are dead and are trying to restart the game
             if event.type == pygame.KEYDOWN and self.game_active == False:
+                if event.key == pygame.K_RETURN:
+                    self.curr_menu = self.main_menu
+                    #print("hit")
+                    self.playing = False
+                    self.curr_menu.run_display = True
+                    self.curr_menu.display_menu()
+
                 if event.key == pygame.K_SPACE:
                     self.game_active = True
                     self.pipe_list.clear()
