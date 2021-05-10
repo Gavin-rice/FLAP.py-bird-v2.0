@@ -276,6 +276,7 @@ class Options_menu(Menu):
         
 
     def draw_buttons(self):
+
         self.game.draw_text(self.descripts[0],288,350,self.name_colours[0])
         self.game.draw_text(self.descripts[1],288,400,self.name_colours[1])
         self.game.draw_text(self.descripts[2],288,450,self.name_colours[2])
@@ -312,14 +313,53 @@ class Options_menu(Menu):
         pass
 
     def move_selector(self):
-        pass
+        l = len(self.names)
+        if self.game.DOWN_KEY:
+            if self.menu_index < (l - 1):
+                self.name_colours[self.menu_index] = self.game.WHITE
+                self.menu_index += 1
+                self.state = self.names[self.menu_index]
+                self.name_colours[self.menu_index] = self.game.BLACK
+            elif self.menu_index == (l - 1):
+                self.name_colours[self.menu_index] = self.game.WHITE
+                self.menu_index = 0
+                self.name_colours[self.menu_index] = self.game.BLACK
+                pass
+        if self.game.UP_KEY:
+            if self.menu_index > 0:
+                self.name_colours[self.menu_index] = self.game.WHITE
+                self.menu_index -= 1
+                self.state = self.names[self.menu_index]
+                self.name_colours[self.menu_index] = self.game.BLACK
+            elif self.menu_index == 0:
+                self.name_colours[self.menu_index] = self.game.WHITE
+                self.menu_index = (l - 1)
+                self.name_colours[self.menu_index] = self.game.BLACK
+
 
     def menu_input(self):
         self.move_selector()
-        if game.START_KEY:
-            pass
-        pass
+        if self.game.START_KEY:
+            if self.state == "Volume":
+                print("Volume control")
+            elif self.state == "Colour":
+                print("Colour")
+                self.change_colour()
+            elif self.state == "Test":
+                print('Test')
+            elif self.state == "Test1":
+                print("Test1")
 
+
+
+    def change_colour(self):
+        if self.game.bird_colour == "BLUE":
+            self.game.bird_frames = self.game.RED_frames
+            self.game.bird_colour = "RED"
+        elif self.game.bird_colour == "RED":
+            self.game.bird_frames = self.game.BLUE_frames
+            self.game.bird_colour = 'BLUE'
+        
 class Credits(Menu):
 
     def __init__(self, game):

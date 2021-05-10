@@ -80,9 +80,20 @@ class Game():
         #bird
         self.bird_colour = 'BLUE'
 
+        #BLUe BIRD
         self.bird_downflap = pygame.transform.scale2x(pygame.image.load('assets/bluebird-downflap.png').convert_alpha())
         self.bird_midflap = pygame.transform.scale2x(pygame.image.load('assets/bluebird-midflap.png').convert_alpha())
         self.bird_upflap = pygame.transform.scale2x(pygame.image.load('assets/bluebird-upflap.png').convert_alpha())
+        #RED BIRD
+        self.red_bird_downflap = pygame.transform.scale2x(pygame.image.load('assets/redbird-downflap.png').convert_alpha())
+        self.red_bird_midflap = pygame.transform.scale2x(pygame.image.load('assets/redbird-midflap.png').convert_alpha())
+        self.red_bird_upflap = pygame.transform.scale2x(pygame.image.load('assets/redbird-upflap.png').convert_alpha())
+        
+        self.BLUE_frames = [self.bird_downflap,self.bird_midflap,self.bird_upflap]
+        
+        self.RED_frames = [self.red_bird_downflap,self.red_bird_midflap,self.red_bird_upflap]
+        
+        
         self.bird_frames = [self.bird_downflap,self.bird_midflap,self.bird_upflap] #we make a system such that it iterates through each sprite at appriate time
         self.bird_index = 0 #current animation index
         self.bird_surface = self.bird_frames[self.bird_index]
@@ -201,6 +212,10 @@ class Game():
 
 
     def score_display(self,game_state):
+        if game_state == 'start':
+            score_surface = self.game_font.render(f'Score: {int(self.score)}',True,(255,255,255))
+            score_rect = score_surface.get_rect(center = (288,100))
+            self.screen.blit(score_surface,score_rect)
         if game_state == 'main_game':
             score_surface = self.game_font.render(f'Score: {int(self.score)}',True,(255,255,255))
             score_rect = score_surface.get_rect(center = (288,100))
@@ -267,7 +282,8 @@ class Game():
 
         #load bg
             self.screen.blit(self.bg_surface,(0,0))
-            
+
+            self.score_display('start')
             if self.game_active:
             #bird movement
                 self.bird_movement += self.gravity
@@ -337,10 +353,15 @@ class Game():
             #when you are dead and are trying to restart the game
             if event.type == pygame.KEYDOWN and self.game_active == False:
                 if event.key == pygame.K_RETURN:
+                    self.playing = False
+                    self.game_active = False
                     self.curr_menu = self.main_menu
                     #print("hit")
-                    self.playing = False
+                    
                     self.curr_menu.run_display = True
+
+                    
+
                     self.curr_menu.display_menu()
 
                 if event.key == pygame.K_SPACE:
