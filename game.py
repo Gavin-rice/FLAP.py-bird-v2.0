@@ -25,7 +25,8 @@ class Game():
         #menu state
         self.menu_state = 'Start'
 
-
+        #score variables
+        self.show_scores = False
 
         self.is_high_score, self.is_quit = self.WHITE,self.WHITE
 
@@ -51,7 +52,32 @@ class Game():
         #Main menu start point
 
         self.main_menu = Main_menu(self)
+
+
+
+        #challenge game mode set up
+        self.is_challenge, self.is_challenge_running = False, False
+
         
+        #load the coin sprites
+        self.front_coin = pygame.transform.scale2x(pygame.image.load('assets/coin-front.png').convert_alpha())
+        self.coin_tilt_1 = pygame.transform.scale2x(pygame.image.load('assets/coin-tilt-1.png').convert_alpha())
+        self.coin_tilt_2 = pygame.transform.scale2x(pygame.image.load('assets/coin-tilt-2.png').convert_alpha())
+        self.coin_side = pygame.transform.scale2x(pygame.image.load('assets/coin-side.png').convert_alpha())
+
+
+
+        #coin animation
+        self.SPAWN_COIN = pygame.USEREVENT + 2
+        pygame.time.set_timer(self.SPAWN_COIN, 6000)
+
+        self.coin_frames = [self.front_coin,self.coin_tilt_1,self.coin_tilt_2,self.coin_side]
+
+        self.coin_index = 0
+        self.coin_surface = self.coin_frames[self.coin_index]
+
+        #coin mechanics
+        self.coin_list = []
 
         #menu controls
         self.BACK_KEY = False #if BACK_KEY is pressed we want to 'pause' the game
@@ -63,13 +89,17 @@ class Game():
         self.curr_menu = self.main_menu
         #font stuff
         self.font_name = '04B_19__.ttf'
-
+        #credit font
+        self.credit_name = 'EightBitDragon-anqx.ttf'
+        self.credit_font = pygame.font.Font(self.credit_name,36) 
+        self.credit_mini_font = pygame.font.Font(self.credit_name,18)
         self.game_font = pygame.font.Font(self.font_name,40)
         self.Menu_font = pygame.font.Font(self.font_name,76)
 
         #BG image
-        self.bg_surface = pygame.image.load('assets/background-day.png').convert() #intial temp background, convert makes it easier for pygame to run
-        self.bg_surface = pygame.transform.scale2x(self.bg_surface) #doubles the size of the asset
+        self.bg_day_surface = pygame.image.load('assets/background-day.png').convert() #intial temp background, convert makes it easier for pygame to run
+        self.bg_day_surface = pygame.transform.scale2x(self.bg_day_surface) #doubles the size of the asset
+        self.bg_surface = self.bg_day_surface
         self.bg_night_surface = pygame.image.load('assets/background-night.png')
         self.bg_night_surface = pygame.transform.scale2x(self.bg_night_surface)
         #floor
@@ -192,7 +222,11 @@ class Game():
 
         self.screen.blit(text_surface,text_rect)
         
+    def draw_creds(self,text,x,y,color):
+        text_surface = self.credit_font.render(text,True,color)
+        text_rect = text_surface.get_rect(center = (x,y))
 
+        self.screen.blit(text_surface,text_rect)        
     #potentially add the 
     def reset_keys(self):
         self.UP_KEY,self.DOWN_KEY,self.START_KEY,self.BACK_KEY,self.SPACE_KEY = False, False, False, False, False
@@ -212,6 +246,8 @@ class Game():
 
 
     def score_display(self,game_state):
+
+
         if game_state == 'start':
             score_surface = self.game_font.render(f'Score: {int(self.score)}',True,(255,255,255))
             score_rect = score_surface.get_rect(center = (288,100))
@@ -220,12 +256,12 @@ class Game():
             score_surface = self.game_font.render(f'Score: {int(self.score)}',True,(255,255,255))
             score_rect = score_surface.get_rect(center = (288,100))
             self.screen.blit(score_surface,score_rect)
-        if game_state == 'game_over':
+        if game_state == 'game_over' and self.show_scores:
             score_surface = self.game_font.render(f'Score: {int(self.score)}',True,(255,255,255))
             score_rect = score_surface.get_rect(center = (288,100))
             self.screen.blit(score_surface,score_rect)
             self.draw_text("Space bar to restart",288,780,self.WHITE)
-            
+
             if self.score == self.high_score:
                 high_score_surface = self.game_font.render(f'New High score!: {int(self.high_score)}',True,self.is_high_score)
                 high_score_rect = score_surface.get_rect(center = (220,880))
@@ -282,10 +318,11 @@ class Game():
 
         #load bg
             self.screen.blit(self.bg_surface,(0,0))
-
-            self.score_display('start')
+            
+            #self.score_display('start')
             if self.game_active:
             #bird movement
+
                 self.bird_movement += self.gravity
                 #rotated_bird = rotate_bird(self.bird_surface)
                 self.rotated_bird = roto(self.bird_surface,self.bird_movement)
@@ -294,15 +331,23 @@ class Game():
 
                 #pipe movement
                 self.pipe_list = self.move_pipes(self.pipe_list)
+
+                #create a similair function for the coins
+
                 self.draw_pipes(self.pipe_list)
 
                 self.score += 0.01
+                self.show_scores = False
                 self.score_display('main_game')
                 self.game_active = self.check_collision(self.pipe_list)
             else:
                 self.screen.blit(self.game_over_surface,self.game_over_rect)
                 self.update_score()
+                self.show_scores = True
                 self.score_display('game_over')
+                self.show_scores = False
+                
+
             
             #floor movement
 
@@ -331,7 +376,7 @@ class Game():
                 pygame.quit()
                 sys.exit()
             #for menu movement
-            if event.type == pygame.KEYDOWN:
+            if event.type == pygame.KEYDOWN and self.playing:
                 if event.key == pygame.K_RETURN:
                     self.START_KEY = True
                 if event.key == pygame.K_BACKSPACE:
@@ -343,7 +388,7 @@ class Game():
                 if event.key == pygame.K_SPACE:
                     self.SPACE_KEY = True  
             #when you are in the game loop
-            if event.type == pygame.KEYDOWN:
+            if event.type == pygame.KEYDOWN and self.playing:
                 if event.key == pygame.K_SPACE and self.game_active:
                     self.bird_movement = 0
                     self.bird_movement -= 8 #bird goes up
@@ -353,16 +398,17 @@ class Game():
             #when you are dead and are trying to restart the game
             if event.type == pygame.KEYDOWN and self.game_active == False:
                 if event.key == pygame.K_RETURN:
+                    #self.game_over_surface = None
+                    self.curr_menu.run_display = True
                     self.playing = False
-                    self.game_active = False
-                    self.curr_menu = self.main_menu
+                    #self.game_active = False
+                    #self.curr_menu = self.main_menu
                     #print("hit")
                     
-                    self.curr_menu.run_display = True
-
                     
-
                     self.curr_menu.display_menu()
+                    self.reset_keys()
+                    #self.game_over_surface = pygame.transform.scale2x(pygame.image.load('assets\message.png').convert_alpha())
 
                 if event.key == pygame.K_SPACE:
                     self.game_active = True
@@ -383,6 +429,65 @@ class Game():
                     
             if event.type == pygame.K_BACKSPACE: #when we want to exit to the main menu/pause
                 self.BACK_KEY = True
+
+
+    def check_events_challenge(self):
+        print('icy')
+        
+
+
+    def game_loop_challenge(self):
+        while self.playing:
+            self.check_events()
+
+
+        #load bg
+            self.screen.blit(self.bg_surface,(0,0))
+            
+            #self.score_display('start')
+            if self.game_active:
+            #bird movement
+
+                self.bird_movement += self.gravity
+                #rotated_bird = rotate_bird(self.bird_surface)
+                self.rotated_bird = roto(self.bird_surface,self.bird_movement)
+                self.bird_rect.centery += self.bird_movement
+                self.screen.blit(self.rotated_bird,self.bird_rect)
+
+                #pipe movement
+                self.pipe_list = self.move_pipes(self.pipe_list)
+
+                #create a similair function for the coins
+
+                self.draw_pipes(self.pipe_list)
+
+                self.score += 0.01
+                self.show_scores = False
+                self.score_display('main_game')
+                self.game_active = self.check_collision(self.pipe_list)
+            else:
+                self.screen.blit(self.game_over_surface,self.game_over_rect)
+                self.update_score()
+                self.show_scores = True
+                self.score_display('game_over')
+                self.show_scores = False
+                
+
+            
+            #floor movement
+
+            self.is_high_score = self.WHITE
+            self.draw_floor()
+            self.floor_x_pos -= 1
+            if self.floor_x_pos <= -576:
+                self.floor_x_pos = 0
+            #print('debug')
+            
+            #update game
+            pygame.display.update()
+            self.clock.tick(120)   
+
+
 
     def create_pipe(self):
         random_pipe_pos = random.choice(self.pipe_height)

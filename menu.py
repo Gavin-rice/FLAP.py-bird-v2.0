@@ -13,6 +13,8 @@ class Menu():
 
     def update_menu(self):
         #self.game.screen.blit(self.game.display,(0,0))
+        self.game.show_scores = False
+        self.game.bg_surface = self.game.bg_day_surface
         pygame.display.update()
         self.game.reset_keys()
 
@@ -99,6 +101,9 @@ class Main_menu(Menu):
                 self.game.curr_menu.display_menu()
             elif self.state == "Credits":
                 print("Credits")
+                self.run_display = False
+                self.game.curr_menu = self.game.credits
+                self.game.curr_menu.display_menu()
             elif self.state == "Quit":
                 self.game.running, self.game.playing = False, False
                 pygame.quit()
@@ -132,6 +137,8 @@ class Main_menu(Menu):
     def display_menu(self):
         self.run_display = True
         while self.run_display:
+
+            #self.game.game_over_surface = None
             self.update_menu()
             self.game.screen.blit(self.game.bg_surface,(0,0))
             #self.game.screen.blit(self.game.title_surface,self.game.title_rect)
@@ -173,6 +180,7 @@ class Main_menu(Menu):
 
             if closer:
                 #print('debug')
+                #self.game_over_surface = pygame.transform.scale2x(pygame.image.load('assets\message.png').convert_alpha())
                 self.run_display = False
                 #self.game.reset_keys()
                 break
@@ -194,6 +202,7 @@ class Other_games_menu(Menu):
     def display_menu(self):
         self.run_display = True
         self.game.menu_state = "Other"
+        
         while self.run_display:
             self.update_menu()
             self.game.screen.blit(self.game.bg_surface,(0,0))
@@ -249,17 +258,23 @@ class Other_games_menu(Menu):
                 self.state = 'Challenge'
 
 
+    def night_mode(self):
+        self.game.bg_surface = self.game.bg_night_surface
 
 
     def menu_input(self):
         self.move_selector()
         if self.game.START_KEY:
             if self.state == "Night":
-                self.game.bg_surface = self.game.bg_night_surface
+                self.night_mode()
                 self.game.playing = True
             elif self.state == "Challenge":
                 print("Challenge Mode")
+                self.game.game_loop_challenge()
+                self.run_display = False
+                self.game.is_challenge_running = True
             elif self.state == "Return":
+                self.game.bg_surface = self.game.bg_day_surface
                 self.run_display = False
                 self.game.curr_menu = self.game.main_menu
                 self.run_display = True
@@ -268,10 +283,11 @@ class Other_games_menu(Menu):
 class Options_menu(Menu):
     def __init__(self,game):
         Menu.__init__(self,game)
-        self.state = "Volume"
-        self.names = ["Volume","Colour","Test","Test1"]
-        self.descripts = ["Volume controls", "Change bird color", "Test text", "Test text 1"]
-        self.name_colours = [self.game.BLACK,self.game.WHITE,self.game.WHITE,self.game.WHITE]
+        
+        self.names = ["Volume","Colour","Test","Test1","Main"]
+        self.state = self.names[0]
+        self.descripts = ["Volume controls", "Change bird color", "Test text", "Test text 1","Main Menu"]
+        self.name_colours = [self.game.BLACK,self.game.WHITE,self.game.WHITE,self.game.WHITE,self.game.WHITE]
         self.menu_index = 0
         
 
@@ -281,6 +297,10 @@ class Options_menu(Menu):
         self.game.draw_text(self.descripts[1],288,400,self.name_colours[1])
         self.game.draw_text(self.descripts[2],288,450,self.name_colours[2])
         self.game.draw_text(self.descripts[3],288,500,self.name_colours[3])
+
+        self.game.draw_text(self.descripts[4],288,600,self.name_colours[4])
+
+        
 
 
     def display_menu(self):
@@ -349,6 +369,12 @@ class Options_menu(Menu):
                 print('Test')
             elif self.state == "Test1":
                 print("Test1")
+            elif self.state == "Main":
+                print("main")
+                self.run_display = False
+                self.game.curr_menu = self.game.main_menu
+                self.run_display = True
+                self.game.curr_menu.display_menu()
 
 
 
@@ -365,18 +391,78 @@ class Credits(Menu):
     def __init__(self, game):
         Menu.__init__(self, game)
         self.state = "Roll"
+        self.creds_pos = 0
 
     def display_menu(self):
+        self.run_display = True
+        self.game.menu_state = "Credits"
+        self.creds_pos = 0
+        while self.run_display:
+            self.update_menu()
+            self.game.screen.blit(self.game.bg_surface,(0,0))
+
+            
+            
+            
+            self.game.draw_floor()
+            self.draw_credits(self.creds_pos)
+            self.creds_pos += 1
+            self.game.floor_x_pos -= 1
+            if self.game.floor_x_pos <= -576:
+                self.game.floor_x_pos = 0
+            if self.creds_pos > 1390:
+                self.creds_pos = 0
+                #self.game.START_KEY = True                 
+
+            self.game.clock.tick(120)
+            closer = self.game.menu_events()
+            self.menu_input()
+
+            if closer:
+                print("yikes")
+                break
         pass
 
+
+    '''
+            text_surface = self.game_font.render(text,True,color)
+        text_rect = text_surface.get_rect(center = (x,y))
+
+        self.screen.blit(text_surface,text_rect)
+    
+    '''
+
+    def draw_credits(self,i):
+        self.game.draw_creds("Developer",288,1030 - i,self.game.BLACK)
+        self.game.draw_creds("Gavin Rice",288,1080 - i,self.game.WHITE)
+
+        self.game.draw_creds("Source Code",288,1150 - i,self.game.BLACK)
+        link = self.game.credit_mini_font.render("https://github.com/Gavin-rice/Flappy-Bird-v2",True,self.game.WHITE)
+        link_rect = link.get_rect(center = (288,1200 - i))
+        self.game.screen.blit(link,link_rect)
+
+        self.game.draw_creds("Press enter to ",288,1300 - i, self.game.WHITE)
+        self.game.draw_creds("return to menu",288,1350 - i, self.game.WHITE)
+
+
+    
+    def menu_input(self):
+        if self.game.START_KEY:
+            self.run_display = False
+            self.game.curr_menu = self.game.main_menu
+            self.run_display = True
+            self.game.curr_menu.display_menu() 
 
 class Pause_menu(Menu):
     def __init__(self,game):
         Menu.__init__(self,game)
         self.state = "Paused"
 
+
+
     def display_menu(self):
         pass
 
-    def check_input(self):
+    def menu_input(self):
         pass
+        
