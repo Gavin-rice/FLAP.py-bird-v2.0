@@ -34,6 +34,7 @@ class Main_menu(Menu):
 
 
 
+
     def move_selector(self):
         if self.game.DOWN_KEY:
             if self.state == "Quit":
@@ -85,8 +86,10 @@ class Main_menu(Menu):
         self.move_selector()
         if self.game.START_KEY:
             if self.state == "Start":
+                
                 self.run_display = False
                 self.game.playing = True
+                #self.is_challenge_running = True
             elif self.state == "Other":
                 print("Other Game Modes")
                 self.run_display = False
@@ -273,6 +276,7 @@ class Other_games_menu(Menu):
                 self.game.game_loop_challenge()
                 self.run_display = False
                 self.game.is_challenge_running = True
+                self.game.is_challenge = True
             elif self.state == "Return":
                 self.game.bg_surface = self.game.bg_day_surface
                 self.run_display = False

@@ -7,7 +7,7 @@ if __name__ == "__main__":
     while g.is_running:
         g.curr_menu.display_menu()
         #print('Gamer')
-        #g.show_menu()
-        g.game_loop() 
+        #g.show_menu()  
+        g.game_loop() #changed .game_loop()
     
     

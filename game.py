@@ -67,9 +67,7 @@ class Game():
 
 
 
-        #coin animation
-        self.SPAWN_COIN = pygame.USEREVENT + 2
-        pygame.time.set_timer(self.SPAWN_COIN, 6000)
+
 
         self.coin_frames = [self.front_coin,self.coin_tilt_1,self.coin_tilt_2,self.coin_side]
 
@@ -78,6 +76,7 @@ class Game():
 
         #coin mechanics
         self.coin_list = []
+        self.coin_heights = [450,475,500,600]
 
         #menu controls
         self.BACK_KEY = False #if BACK_KEY is pressed we want to 'pause' the game
@@ -110,7 +109,7 @@ class Game():
         #bird
         self.bird_colour = 'BLUE'
 
-        #BLUe BIRD
+        #BLUE BIRD
         self.bird_downflap = pygame.transform.scale2x(pygame.image.load('assets/bluebird-downflap.png').convert_alpha())
         self.bird_midflap = pygame.transform.scale2x(pygame.image.load('assets/bluebird-midflap.png').convert_alpha())
         self.bird_upflap = pygame.transform.scale2x(pygame.image.load('assets/bluebird-upflap.png').convert_alpha())
@@ -129,9 +128,7 @@ class Game():
         self.bird_surface = self.bird_frames[self.bird_index]
         self.bird_rect = self.bird_surface.get_rect(center = (100,512))
         self.rotated_bird = self.bird_surface
-        #bird animation
-        self.BIRDFLAP = pygame.USEREVENT + 1
-        pygame.time.set_timer(self.BIRDFLAP, 200) #200 ms
+
 
 
         #pipes
@@ -143,6 +140,10 @@ class Game():
         pygame.time.set_timer(self.SPAWNPIPE,1200) #in ms so every 1.2 seconds, call SPAWNPIPE
         self.pipe_height = [400,600,800] #possible heights that a pipe can spawn at 
 
+                #bird animation
+        self.BIRDFLAP = pygame.USEREVENT + 1
+        pygame.time.set_timer(self.BIRDFLAP, 200) #200 ms
+
         #game variables
         self.gravity = 0.25
         self.bird_movement = 0
@@ -153,10 +154,15 @@ class Game():
         self.flap_sound = pygame.mixer.Sound('sounds\sound_sfx_wing.wav')
         self.death_sound = pygame.mixer.Sound('sounds\sound_sfx_hit.wav') #for pipe
         self.score_sound = pygame.mixer.Sound('sounds\sound_sfx_point.wav')
+        self.coin_sound = pygame.mixer.Sound('sounds\sound_sfx_coin.wav')
 
         self.menu_bird_index = 0
         self.menu_bird_surface = self.bird_frames[self.menu_bird_index]
         self.menu_bird_rect = self.menu_bird_surface.get_rect(center = (480,115))
+
+                #coin animation
+        self.SPAWNCOIN = pygame.USEREVENT + 2
+        pygame.time.set_timer(self.SPAWNCOIN, 1200)
    
 
 
@@ -432,13 +438,77 @@ class Game():
 
 
     def check_events_challenge(self):
-        print('icy')
+        #print('icy')
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.is_running, self.is_playing = False, False
+                pygame.quit()
+                sys.exit()
+            #for menu movement
+            if event.type == pygame.KEYDOWN and self.is_challenge_running: #changed from self.playing to is_challenge_running
+                if event.key == pygame.K_RETURN:
+                    self.START_KEY = True
+                if event.key == pygame.K_BACKSPACE:
+                    self.BACK_KEY = True
+                if event.key == pygame.K_DOWN:
+                    self.DOWN_KEY = True
+                if event.key == pygame.K_UP:
+                    self.UP_KEY = True  
+                if event.key == pygame.K_SPACE:
+                    self.SPACE_KEY = True  
+            #when you are in the game loop
+            if event.type == pygame.KEYDOWN and self.is_challenge_running:
+                if event.key == pygame.K_SPACE and self.game_active:
+                    self.bird_movement = 0
+                    self.bird_movement -= 8 #bird goes up
+                    self.flap_sound.play()
+                    self.SPACE_KEY = True
+            
+            #when you are dead and are trying to restart the game
+            if event.type == pygame.KEYDOWN and self.game_active == False:
+                if event.key == pygame.K_RETURN:
+                    #self.game_over_surface = None
+                    self.curr_menu.run_display = True
+                    self.is_challenge_running = False
+                    #self.game_active = False
+                    #self.curr_menu = self.main_menu
+                    #print("hit")
+                    
+                    
+                    self.curr_menu.display_menu()
+                    self.reset_keys()
+                    #self.game_over_surface = pygame.transform.scale2x(pygame.image.load('assets\message.png').convert_alpha())
+
+                if event.key == pygame.K_SPACE:
+                    self.game_active = True
+                    self.pipe_list.clear()
+                    self.bird_rect.center = (100,512)
+                    self.bird_movement = 0
+                    self.score = 0
+                
+            if event.type == self.SPAWNPIPE:
+                self.pipe_list.extend(self.create_pipe())
+
+            
+            if event.type == self.SPAWNCOIN:
+                self.coin_list.append(self.create_coins())
+
+            if event.type == self.BIRDFLAP:
+                if self.bird_index < 2: #prevents overflow
+                    self.bird_index += 1
+                else:
+                    self.bird_index = 0 #sdasd
+                self.bird_surface, self.bird_rect = self.bird_animation()
+                    
+            if event.type == pygame.K_BACKSPACE: #when we want to exit to the main menu/pause
+                self.BACK_KEY = True
+
         
 
 
     def game_loop_challenge(self):
-        while self.playing:
-            self.check_events()
+        while self.is_challenge_running:
+            self.check_events_challenge()
 
 
         #load bg
@@ -456,14 +526,16 @@ class Game():
 
                 #pipe movement
                 self.pipe_list = self.move_pipes(self.pipe_list)
-
+                self.coin_list = self.move_coins(self.coin_list)
                 #create a similair function for the coins
 
                 self.draw_pipes(self.pipe_list)
+                self.draw_coins(self.coin_list)
 
                 self.score += 0.01
                 self.show_scores = False
                 self.score_display('main_game')
+                self.check_collision_coin(self.coin_list)
                 self.game_active = self.check_collision(self.pipe_list)
             else:
                 self.screen.blit(self.game_over_surface,self.game_over_rect)
@@ -489,11 +561,22 @@ class Game():
 
 
 
+    def create_coins(self):
+        rand_coin_pos = random.choice(self.coin_heights)
+        coin_sprite = self.coin_surface.get_rect(midtop = (700,rand_coin_pos))
+        return coin_sprite
+
     def create_pipe(self):
         random_pipe_pos = random.choice(self.pipe_height)
         bottom_pipe = self.pipe_surface.get_rect(midtop = (700,random_pipe_pos)) 
         top_pipe = self.pipe_surface.get_rect(midbottom = (700,random_pipe_pos - 300))#render the rect in the exact middle of the screen
         return bottom_pipe, top_pipe
+
+
+    def move_coins(self,coins):
+        for coin in coins:
+            coin.centerx -= 5
+        return coins
 
     def move_pipes(self,pipes):
         for pipe in pipes:
@@ -514,6 +597,20 @@ class Game():
             else:
                 flip_pipe = pygame.transform.flip(self.pipe_surface,False,True)
                 self.screen.blit(flip_pipe,pipe)
+
+
+    def draw_coins(self,coins):
+        for coin in coins:
+            
+            self.screen.blit(self.coin_surface,coin)
+        
+    def check_collision_coin(self,coins):
+        for coin in coins:
+            if self.bird_rect.colliderect(coin):
+                self.coin_sound.play()
+                
+                return
+        
         
 
     #collision checking
@@ -523,6 +620,7 @@ class Game():
                 self.death_sound.play()
 
                 return False
+        #if the player hits the ground or exits the screen -> game over
         if self.bird_rect.top <= -100 or self.bird_rect.bottom >= 900:
             self.death_sound.play()
             return False
