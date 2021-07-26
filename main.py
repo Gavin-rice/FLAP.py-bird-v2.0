@@ -1,6 +1,7 @@
 from game import *
-  
-if __name__ == "__main__":
+
+
+def main():
     print('Game has started')
     g = Game()
 
@@ -9,5 +10,8 @@ if __name__ == "__main__":
         #print('Gamer')
         #g.show_menu()  
         g.game_loop() #changed .game_loop()
+  
+if __name__ == "__main__":
+    main()
     
     

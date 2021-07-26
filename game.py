@@ -1,5 +1,6 @@
 import pygame, sys, random
 from menu import *
+from time import sleep
 
 class Game():
 
@@ -60,19 +61,26 @@ class Game():
 
         
         #load the coin sprites
-        self.front_coin = pygame.transform.scale2x(pygame.image.load('assets/coin-front.png').convert_alpha())
-        self.coin_tilt_1 = pygame.transform.scale2x(pygame.image.load('assets/coin-tilt-1.png').convert_alpha())
-        self.coin_tilt_2 = pygame.transform.scale2x(pygame.image.load('assets/coin-tilt-2.png').convert_alpha())
-        self.coin_side = pygame.transform.scale2x(pygame.image.load('assets/coin-side.png').convert_alpha())
+        self.front_coin = pygame.transform.scale((pygame.image.load('assets/coin-front.png').convert_alpha()),(100,100))
+        self.coin_tilt_1 = pygame.transform.scale((pygame.image.load('assets/coin-tilt-1.png').convert_alpha()),(100,100))
+        self.coin_tilt_2 = pygame.transform.scale((pygame.image.load('assets/coin-tilt-2.png').convert_alpha()),(100,100))
+        self.coin_side = pygame.transform.scale((pygame.image.load('assets/coin-side.png').convert_alpha()),(100,100))
 
-
-
+        #blank png of for coin
+        self.no_coin = pygame.transform.scale((pygame.image.load('assets/BLANK.png').convert_alpha()),(100,100))
+        self.is_coin = True
 
 
         self.coin_frames = [self.front_coin,self.coin_tilt_1,self.coin_tilt_2,self.coin_side]
 
         self.coin_index = 0
         self.coin_surface = self.coin_frames[self.coin_index]
+
+
+        # Challenge mode score
+        self.challenge_score = 0
+        self.challenge_hs = 0
+        self.is_challenge_hs = self.WHITE
 
         #coin mechanics
         self.coin_list = []
@@ -162,7 +170,10 @@ class Game():
 
                 #coin animation
         self.SPAWNCOIN = pygame.USEREVENT + 2
-        pygame.time.set_timer(self.SPAWNCOIN, 1200)
+        self.ROTATECOIN = pygame.USEREVENT + 3
+        pygame.time.set_timer(self.ROTATECOIN,300)
+        pygame.time.set_timer(self.SPAWNCOIN, 5000)
+
    
 
 
@@ -277,11 +288,44 @@ class Game():
                 high_score_rect = score_surface.get_rect(center = (240,880))
                 self.screen.blit(high_score_surface,high_score_rect)
 
+
+    def challenge_score_display(self,game_state):
+    
+
+        if game_state == 'start':
+            score_surface = self.game_font.render(f'Score: {int(self.challenge_score)}',True,(255,255,255))
+            score_rect = score_surface.get_rect(center = (288,100))
+            self.screen.blit(score_surface,score_rect)
+        if game_state == 'main_game':
+            score_surface = self.game_font.render(f'Score: {int(self.challenge_score)}',True,(255,255,255))
+            score_rect = score_surface.get_rect(center = (288,100))
+            self.screen.blit(score_surface,score_rect)
+        if game_state == 'game_over' and self.show_scores:
+            score_surface = self.game_font.render(f'Score: {int(self.challenge_score)}',True,(255,255,255))
+            score_rect = score_surface.get_rect(center = (288,100))
+            self.screen.blit(score_surface,score_rect)
+            self.draw_text("Space bar to restart",288,780,self.WHITE)
+
+            if self.score == self.high_score:
+                high_score_surface = self.game_font.render(f'New High score!: {int(self.challenge_hs)}',True,self.is_challenge_hs)
+                high_score_rect = score_surface.get_rect(center = (220,880))
+                self.screen.blit(high_score_surface,high_score_rect)                
+            else:
+                high_score_surface = self.game_font.render(f'High score: {int(self.challenge_hs)}',True,self.is_challenge_hs)
+                high_score_rect = score_surface.get_rect(center = (240,880))
+                self.screen.blit(high_score_surface,high_score_rect)
+
     def update_score(self):
         self.high_score = max(self.score,self.high_score)
         if self.high_score == self.score:
             self.is_high_score = self.RED
 
+
+
+    def update_score_challenge(self):
+        self.challenge_hs = max(self.challenge_hs,self.challenge_score)
+        if self.challenge_hs == self.challenge_score:
+            self.is_challenge_hs = self.RED
     
     #draws each option in the main menu
 
@@ -482,15 +526,24 @@ class Game():
                 if event.key == pygame.K_SPACE:
                     self.game_active = True
                     self.pipe_list.clear()
+                    self.coin_list.clear()
                     self.bird_rect.center = (100,512)
                     self.bird_movement = 0
                     self.score = 0
                 
             if event.type == self.SPAWNPIPE:
+                if random.random() > 0.8:
+                    pass
                 self.pipe_list.extend(self.create_pipe())
+
+            if event.type == self.ROTATECOIN:
+                self.animate_coins()
 
             
             if event.type == self.SPAWNCOIN:
+                if not self.is_coin:
+                    self.is_coin = True
+                    self.coin_surface = self.coin_frames[self.coin_index]
                 self.coin_list.append(self.create_coins())
 
             if event.type == self.BIRDFLAP:
@@ -513,7 +566,7 @@ class Game():
 
         #load bg
             self.screen.blit(self.bg_surface,(0,0))
-            
+            #self.animate_coins()
             #self.score_display('start')
             if self.game_active:
             #bird movement
@@ -532,16 +585,16 @@ class Game():
                 self.draw_pipes(self.pipe_list)
                 self.draw_coins(self.coin_list)
 
-                self.score += 0.01
+                self.challenge_score += 0.01
                 self.show_scores = False
-                self.score_display('main_game')
+                self.challenge_score_display('main_game')
                 self.check_collision_coin(self.coin_list)
                 self.game_active = self.check_collision(self.pipe_list)
             else:
                 self.screen.blit(self.game_over_surface,self.game_over_rect)
-                self.update_score()
+                self.update_score_challenge()
                 self.show_scores = True
-                self.score_display('game_over')
+                self.challenge_score_display('game_over')
                 self.show_scores = False
                 
 
@@ -573,13 +626,21 @@ class Game():
         return bottom_pipe, top_pipe
 
 
+    def create_red_pipe(self):
+        random_pipe_pos = random.choice(self.pipe_height)
+        bottom_pipe = self.pipe_surface.get_rect(midtop = (700,random_pipe_pos)) 
+        top_pipe = self.pipe_surface.get_rect(midbottom = (700,random_pipe_pos - 200))#render the rect in the exact middle of the screen
+        return bottom_pipe, top_pipe
+
     def move_coins(self,coins):
         for coin in coins:
             coin.centerx -= 5
         return coins
 
     def move_pipes(self,pipes):
+        #print(pipes)
         for pipe in pipes:
+            #print(pipe.centerx)
             pipe.centerx -= 5
         return pipes
 
@@ -592,6 +653,7 @@ class Game():
     #FIND SOME WAY TO DELETE THE FIRST PIPE IN pipe_list to improve performance
     def draw_pipes(self,pipes):
         for pipe in pipes:
+            
             if pipe.bottom >= 1024:
                 self.screen.blit(self.pipe_surface,pipe)
             else:
@@ -605,12 +667,24 @@ class Game():
             self.screen.blit(self.coin_surface,coin)
         
     def check_collision_coin(self,coins):
+        #print(coins)
         for coin in coins:
             if self.bird_rect.colliderect(coin):
+                coin.centerx = -50 #remove the coin from ever touching thr bird again
+                self.challenge_score += 5
                 self.coin_sound.play()
+                self.is_coin = False
+                self.coin_surface = self.no_coin
                 
                 return
         
+    def animate_coins(self):
+        if self.coin_index >= (len(self.coin_frames) - 1):
+            self.coin_index = 0
+        self.coin_index += 1
+        self.coin_surface = self.coin_frames[self.coin_index]
+            
+
         
 
     #collision checking
@@ -619,7 +693,7 @@ class Game():
             if self.bird_rect.colliderect(pipe):
                 self.death_sound.play()
 
-                return False
+                return True #change to True to become invincible
         #if the player hits the ground or exits the screen -> game over
         if self.bird_rect.top <= -100 or self.bird_rect.bottom >= 900:
             self.death_sound.play()
