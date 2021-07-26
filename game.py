@@ -142,6 +142,13 @@ class Game():
         #pipes
         self.pipe_surface = pygame.image.load('assets\pipe-green.png').convert()
         self.pipe_surface = pygame.transform.scale2x(self.pipe_surface)
+
+        #RED PIPE
+        self.RED_surface = pygame.image.load('assets\pipe-red.png').convert()
+        self.RED_surface = pygame.transform.scale2x(self.RED_surface)
+
+
+        self.red_list = []
         self.pipe_list = []
         self.SPAWNPIPE = pygame.USEREVENT #event triggered by a timer and not user input
                              #full uppercase letters implies it is a custom trigger event
@@ -532,9 +539,10 @@ class Game():
                     self.score = 0
                 
             if event.type == self.SPAWNPIPE:
-                if random.random() > 0.8:
-                    pass
-                self.pipe_list.extend(self.create_pipe())
+                if random.random() > 0.5:
+                    self.red_list.extend(self.create_red_pipe())
+                else:
+                    self.pipe_list.extend(self.create_pipe())
 
             if event.type == self.ROTATECOIN:
                 self.animate_coins()
@@ -580,10 +588,12 @@ class Game():
                 #pipe movement
                 self.pipe_list = self.move_pipes(self.pipe_list)
                 self.coin_list = self.move_coins(self.coin_list)
+                self.red_list = self.move_pipes(self.red_list)
                 #create a similair function for the coins
 
                 self.draw_pipes(self.pipe_list)
                 self.draw_coins(self.coin_list)
+                self.draw_red_pipes(self.red_list)
 
                 self.challenge_score += 0.01
                 self.show_scores = False
@@ -658,6 +668,16 @@ class Game():
                 self.screen.blit(self.pipe_surface,pipe)
             else:
                 flip_pipe = pygame.transform.flip(self.pipe_surface,False,True)
+                self.screen.blit(flip_pipe,pipe)
+
+
+    def draw_red_pipes(self,pipes):
+        for pipe in pipes:
+            
+            if pipe.bottom >= 1024:
+                self.screen.blit(self.RED_surface,pipe)
+            else:
+                flip_pipe = pygame.transform.flip(self.RED_surface,False,True)
                 self.screen.blit(flip_pipe,pipe)
 
 
