@@ -288,21 +288,28 @@ class Options_menu(Menu):
     def __init__(self,game):
         Menu.__init__(self,game)
         
-        self.names = ["Volume","Colour","Test","Test1","Main"]
+        self.names = ["Volume","Colour","Main"]
         self.state = self.names[0]
-        self.descripts = ["Volume controls", "Change bird color", "Test text", "Test text 1","Main Menu"]
-        self.name_colours = [self.game.BLACK,self.game.WHITE,self.game.WHITE,self.game.WHITE,self.game.WHITE]
+        self.descripts = ["Volume controls", "Change bird color", "Main Menu"]
+        self.name_colours = [self.game.BLACK,self.game.WHITE,self.game.WHITE]
         self.menu_index = 0
         
 
     def draw_buttons(self):
+        offset = 0
+        for x in range(len(self.names)):
+            self.game.draw_text(self.descripts[x],288,(350+offset),self.name_colours[x])
+            
+            if x == (len(self.names) - 2):
+                offset += 100
+            else:
+                offset += 50
+        #self.game.draw_text(self.descripts[0],288,350,self.name_colours[0])
+        #self.game.draw_text(self.descripts[1],288,400,self.name_colours[1])
+        #self.game.draw_text(self.descripts[2],288,450,self.name_colours[2])
+        #self.game.draw_text(self.descripts[3],288,500,self.name_colours[3])
 
-        self.game.draw_text(self.descripts[0],288,350,self.name_colours[0])
-        self.game.draw_text(self.descripts[1],288,400,self.name_colours[1])
-        self.game.draw_text(self.descripts[2],288,450,self.name_colours[2])
-        self.game.draw_text(self.descripts[3],288,500,self.name_colours[3])
-
-        self.game.draw_text(self.descripts[4],288,600,self.name_colours[4])
+        #self.game.draw_text(self.descripts[4],288,600,self.name_colours[4])
 
         
 

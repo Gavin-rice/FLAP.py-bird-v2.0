@@ -103,6 +103,8 @@ class Game():
         self.game_font = pygame.font.Font(self.font_name,40)
         self.Menu_font = pygame.font.Font(self.font_name,76)
 
+
+
         #BG image
         self.bg_day_surface = pygame.image.load('assets/background-day.png').convert() #intial temp background, convert makes it easier for pygame to run
         self.bg_day_surface = pygame.transform.scale2x(self.bg_day_surface) #doubles the size of the asset
@@ -534,6 +536,7 @@ class Game():
                     self.game_active = True
                     self.pipe_list.clear()
                     self.coin_list.clear()
+                    self.red_list.clear()
                     self.bird_rect.center = (100,512)
                     self.bird_movement = 0
                     self.score = 0
@@ -600,6 +603,9 @@ class Game():
                 self.challenge_score_display('main_game')
                 self.check_collision_coin(self.coin_list)
                 self.game_active = self.check_collision(self.pipe_list)
+
+                #there is a major bug in this function
+                self.game_active = self.check_collision_red(self.red_list)
             else:
                 self.screen.blit(self.game_over_surface,self.game_over_rect)
                 self.update_score_challenge()
@@ -705,7 +711,13 @@ class Game():
         self.coin_surface = self.coin_frames[self.coin_index]
             
 
-        
+    def check_collision_red(self,pipes):
+        for pipe in pipes:
+            if self.bird_rect.colliderect(pipe):
+                self.death_sound.play()
+                return False
+        return True
+          
 
     #collision checking
     def check_collision(self,pipes):
@@ -713,7 +725,7 @@ class Game():
             if self.bird_rect.colliderect(pipe):
                 self.death_sound.play()
 
-                return True #change to True to become invincible
+                return False #change to True to become invincible
         #if the player hits the ground or exits the screen -> game over
         if self.bird_rect.top <= -100 or self.bird_rect.bottom >= 900:
             self.death_sound.play()
