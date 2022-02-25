@@ -25,8 +25,9 @@ python3 main.py
 - Space bar jumps (flap)
 - Enter to play again on the death screen
 
-<img src="[img_girl.jpg](https://github.com/Gavin-rice/Flap.py-bird-v2/blob/main/flappy bird sc.png" width=378 height=670>
+<img src="[img_girl.jpg](https://github.com/Gavin-rice/Flap.py-bird-v2/blob/main/flappy-bird-sc.png" width=378 height=670>
 
 Death screen screenshot.
 
 - Backspace in the gameover screen can be used to return to the main menu
+
